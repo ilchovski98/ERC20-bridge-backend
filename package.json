@@ -1,0 +1,22 @@
+{
+  "name": "ERC20-bridge-backend",
+  "version": "1.0.0",
+  "main": "index.js",
+  "repository": "git@github.com:ilchovski98/ERC20-bridge-backend.git",
+  "author": "ilchovski98 <ilchovski98@gmail.com>",
+  "license": "MIT",
+  "scripts": {
+    "start": "npx nodemon ./server.ts"
+  },
+  "dependencies": {
+    "express": "^4.18.2",
+    "typescript": "^5.0.2"
+  },
+  "devDependencies": {
+    "@types/express": "^4.17.17",
+    "@types/node": "^18.15.5",
+    "dotenv": "^16.0.3",
+    "nodemon": "^2.0.21",
+    "ts-node": "^10.9.1"
+  }
+}
