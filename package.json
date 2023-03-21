@@ -6,10 +6,12 @@
   "author": "ilchovski98 <ilchovski98@gmail.com>",
   "license": "MIT",
   "scripts": {
-    "start": "npx nodemon ./server.ts"
+    "start": "npx nodemon ./src/server.ts"
   },
   "dependencies": {
+    "ethers": "^5.7.2",
     "express": "^4.18.2",
+    "mongoose": "^7.0.2",
     "typescript": "^5.0.2"
   },
   "devDependencies": {

@@ -1,0 +1,4 @@
+export const bridgeAddressesByChain = {
+  11155111: '0xF55D12e0fe91c157c3D389F134a46b2182D2F6Da',
+  5: '0xc551F21DE4cd2C55Ea1B8B9eb8b541aaBE9766EF'
+};
