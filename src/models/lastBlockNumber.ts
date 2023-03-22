@@ -2,7 +2,7 @@ import mongoose from 'mongoose';
 import Joi from 'joi';
 
 import { validationForAddress } from '../utils';
-import { LastBlockNumberData } from '../types';
+import { LastBlockNumberData } from '../utils/types';
 
 const LastBlockNumberSchema = new mongoose.Schema({
   chain: {

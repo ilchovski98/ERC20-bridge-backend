@@ -1,4 +1,4 @@
-import { signersAndBridgesByChain } from '../services/responders';
+import { signersAndBridgesByChain } from '../components/signers/signers';
 import { createLastBlockPerChainIfNotPresent } from '../routes/lastBlockNumbers';
 import { infoByChain } from '../config';
 

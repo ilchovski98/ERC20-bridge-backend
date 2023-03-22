@@ -2,7 +2,7 @@ import express, { Request, Response } from 'express';
 import _ from 'lodash';
 
 import { Transaction, validateTransaction } from '../models/transaction';
-import { TransactionData } from '../types';
+import { TransactionData } from '../utils/types';
 import { asyncMiddleware } from '../middlewares/async';
 
 const router = express.Router();

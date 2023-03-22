@@ -1,8 +1,8 @@
 import { Contract, ethers, providers, Wallet } from 'ethers';
 
-import bridgeABI from '../contract/abi/Bridge.json';
-import { infoByChain } from '../config';
-import { ClaimData, SignersAndBridgesByChain } from '../types';
+import bridgeABI from '../../utils/contract/abi/Bridge.json';
+import { infoByChain } from '../../config';
+import { ClaimData, SignersAndBridgesByChain } from '../../utils/types';
 
 export class Responder {
   signer: Wallet;

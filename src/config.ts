@@ -1,4 +1,4 @@
-import { InfoByChain } from './types';
+import { InfoByChain } from './utils/types';
 
 const PRIVATE_KEY: any = process.env.BRIDGE_PRIVATE_KEY;
 

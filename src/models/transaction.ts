@@ -2,7 +2,7 @@ import mongoose from 'mongoose';
 import Joi from 'joi';
 
 import { validationForAddress } from '../utils';
-import { TransactionData } from '../types';
+import { TransactionData } from '../utils/types';
 
 const transactionSchema = new mongoose.Schema({
   eventName: {

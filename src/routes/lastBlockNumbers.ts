@@ -3,7 +3,7 @@ import _ from 'lodash';
 import { Signer } from 'ethers';
 
 import { LastBlockNumber, validateLastBlockNumber } from '../models/lastBlockNumber';
-import { LastBlockNumberData } from '../types';
+import { LastBlockNumberData } from '../utils/types';
 import { asyncMiddleware } from '../middlewares/async';
 import { infoByChain } from '../config';
 
