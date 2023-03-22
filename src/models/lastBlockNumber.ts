@@ -1,33 +1,37 @@
 import mongoose from 'mongoose';
 import Joi from 'joi';
 
+import { validationForAddress } from '../utils';
+import { LastBlockNumberData } from '../types';
+
 const LastBlockNumberSchema = new mongoose.Schema({
   chain: {
-    type: String,
-    required: true
+    type: Number,
+    min: 1,
+    required: true,
+    unique: true
   },
   bridgeAddress: {
     type: String,
     required: true,
-    minlength: 64,
-    maxlength: 64
+    minlength: 42,
+    maxlength: 42,
+    validate: validationForAddress
   },
   lastBlockNumber: {
     type: Number,
-    required: true
+    required: true,
+    min: 1
   }
 });
 
-const LastBlockNumber = mongoose.model('LastBlockNumber', LastBlockNumberSchema);
+export const LastBlockNumber = mongoose.model('LastBlockNumber', LastBlockNumberSchema);
 
-function validateLastBlockNumber(transaction) {
+export function validateLastBlockNumber(lastBlockNumber: LastBlockNumberData) {
   const schema = Joi.object({
-    chain: Joi.string().required(),
-    bridgeAddress: Joi.string().min(64).max(64).required(),
-    lastBlockNumber: Joi.number().required()
+    chain: Joi.number().min(1).required(),
+    bridgeAddress: Joi.string().min(42).max(42).required(),
+    lastBlockNumber: Joi.number().min(1).required()
   });
-  return schema.validate(transaction);
+  return schema.validate(lastBlockNumber);
 }
-
-exports.Transaction = LastBlockNumber;
-exports.validate = validateLastBlockNumber;

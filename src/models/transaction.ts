@@ -1,60 +1,67 @@
 import mongoose from 'mongoose';
 import Joi from 'joi';
 
+import { validationForAddress } from '../utils';
+import { TransactionData } from '../types';
+
 const transactionSchema = new mongoose.Schema({
   eventName: {
     type: String,
     required: true,
-    minlength: 5,
-    maxlength: 255
+    minlength: 2
   },
   fromChain: {
-    type: String,
+    type: Number,
+    min: 1,
     required: true,
   },
   toChain: {
-    type: String,
+    type: Number,
+    min: 1,
     required: true,
   },
   fromAddress: {
     type: String,
     required: true,
-    minlength: 64,
-    maxlength: 64
+    minlength: 42,
+    maxlength: 42,
+    validate: validationForAddress
   },
   toAddress: {
     type: String,
     required: true,
-    minlength: 64,
-    maxlength: 64
+    minlength: 42,
+    maxlength: 42,
+    validate: validationForAddress
   },
   transferedTokenAddress: {
     type: String,
     required: true,
-    minlength: 64,
-    maxlength: 64
+    minlength: 42,
+    maxlength: 42,
+    validate: validationForAddress
   },
   originalTokenAddress: {
     type: String,
     required: true,
-    minlength: 64,
-    maxlength: 64
+    minlength: 42,
+    maxlength: 42,
+    validate: validationForAddress
   },
   originalChainId: {
-    type: String,
+    type: Number,
+    min: 1,
     required: true,
   },
   txHash: {
     type: String,
     required: true,
-    minlength: 64,
-    maxlength: 64
+    maxlength: 66
   },
   blockHash: {
     type: String,
     required: true,
-    minlength: 64,
-    maxlength: 64
+    maxlength: 66
   },
   logIndex: {
     type: Number,
@@ -67,8 +74,7 @@ const transactionSchema = new mongoose.Schema({
   claimSignature: {
     type: String,
     required: true,
-    minlength: 64,
-    maxlength: 64
+    maxlength: 66
   },
   isClaimed: {
     type: Boolean,
@@ -76,46 +82,42 @@ const transactionSchema = new mongoose.Schema({
   },
   claimedTxHash: {
     type: String,
-    minlength: 64,
-    maxlength: 64
+    maxlength: 66
   },
   claimedBlockHash: {
     type: String,
-    minlength: 64,
-    maxlength: 64
+    maxlength: 66
   },
   claimedLogIndex: {
     type: Number
   }
 });
 
-const Transaction = mongoose.model('Transaction', transactionSchema);
+export const Transaction = mongoose.model('Transaction', transactionSchema);
 
-function validateTransaction(transaction) {
-  const bytes32OrAddress = Joi.string().min(64).max(64).required();
-  const chainId = Joi.string().required();
+export function validateTransaction(transaction: TransactionData) {
+  const bytes32 = Joi.string().max(66).required();
+  const address = Joi.string().min(42).max(42).required();
+  const chainId = Joi.number().min(1).required();
 
   const schema = Joi.object({
-    eventName: bytes32OrAddress,
+    eventName: Joi.string().min(2).required(),
     fromChain: chainId,
     toChain: chainId,
-    fromAddress: bytes32OrAddress,
-    toAddress: bytes32OrAddress,
-    transferedTokenAddress: bytes32OrAddress,
-    originalTokenAddress: bytes32OrAddress,
+    fromAddress: address,
+    toAddress: address,
+    transferedTokenAddress: address,
+    originalTokenAddress: address,
     originalChainId: chainId,
-    txHash: bytes32OrAddress,
-    blockHash: bytes32OrAddress,
-    logIndex: bytes32OrAddress,
-    blockNumber: Joi.number().required(),
-    claimSignature: bytes32OrAddress,
+    txHash: bytes32,
+    blockHash: bytes32,
+    logIndex: Joi.number().required(),
+    blockNumber: Joi.number().min(1).required(),
+    claimSignature: bytes32,
     isClaimed: Joi.boolean().required(),
-    claimedTxHash: Joi.string().min(64).max(64),
-    claimedBlockHash: Joi.string().min(64).max(64),
+    claimedTxHash: bytes32,
+    claimedBlockHash: bytes32,
     claimedLogIndex: Joi.number()
   });
   return schema.validate(transaction);
 }
-
-exports.Transaction = Transaction;
-exports.validate = validateTransaction;

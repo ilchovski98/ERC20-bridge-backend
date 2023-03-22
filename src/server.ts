@@ -11,6 +11,7 @@
   // });
 
 import express, {Express, Request, Response} from 'express';
+import { createLastBlockPerChainIfNotPresent } from './routes/lastBlockNumbers';
 
 require('dotenv').config();
 
@@ -19,8 +20,11 @@ const app: Express = express();
 const port  = process.env.PORT || 8000;
 
 require('./startup/db')();
-// require('./startup/config')();
-// require('./startup/routes')(app);
+require('./startup/config')();
+require('./startup/routes')(app);
+
+
+// createLastBlockPerChainIfNotPresent()
 
 // Create the server
 app.listen(port, () => {
