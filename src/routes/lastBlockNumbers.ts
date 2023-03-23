@@ -42,6 +42,17 @@ export const createLastBlockPerChainIfNotPresent = async (chain: number | any, s
   }
 }
 
+export const getLastProcessedBlockNumber = async (chainId: number | string): Promise<LastBlockNumberData> => {
+  const result =  await LastBlockNumber.findOne({ chain: chainId });
+  console.log('result', result);
+
+  return {
+    chain: result?.chain || 0,
+    bridgeAddress: result?.bridgeAddress || '',
+    lastBlockNumber: result?.lastBlockNumber || 0
+  }
+}
+
 // create
 // Todo if I need lodash or not - add value that is not present in the validation see what happens
 router.post('/', asyncMiddleware(async (req: Request, res: Response) => {

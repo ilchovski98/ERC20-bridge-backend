@@ -2,7 +2,7 @@ import { ethers, Wallet, Contract } from 'ethers';
 import { SigningKey } from 'ethers/lib/utils';
 
 export interface InfoByChain {
-  [key: number | string]: {
+  [key: number]: {
     providerUrl?: string;
     bridgeOwnerPrivateKey?: SigningKey;
     bridgeAddress?: string;
@@ -82,8 +82,8 @@ export type LastBlockNumberData = {
 }
 
 export type SignersAndBridgesByChain = {
-  [chain: number]: {
-    provider: ethers.providers.Provider;
+  [chain: number | string]: {
+    provider: ethers.providers.JsonRpcProvider;
     signer: Wallet;
     bridgeContract: Contract;
   }

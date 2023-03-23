@@ -1,6 +1,7 @@
 import { signersAndBridgesByChain } from '../components/signers/signers';
 import { createLastBlockPerChainIfNotPresent } from '../routes/lastBlockNumbers';
 import { infoByChain } from '../config';
+import { sync } from '../components/indexer/event-listener';
 
 const main = async () => {
   /*
@@ -11,6 +12,8 @@ const main = async () => {
   for (let index = 0; index < chains.length; index++) {
     await createLastBlockPerChainIfNotPresent(chains[index], signersAndBridgesByChain[Number(chains[index])].signer);
   }
+
+  await sync();
 }
 
 module.exports = function() {
