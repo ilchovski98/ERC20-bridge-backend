@@ -23,6 +23,30 @@ export const createTransaction = async (data: TransactionData) => {
   }
 }
 
+export const createTransactionInBatch = async (data: TransactionData[]) => {
+  let hasError;
+
+  data.forEach(element => {
+    const { error } = validateTransaction(element);
+    if (error) {
+      hasError = error;
+    }
+  });
+
+  if (hasError) {
+    console.error(hasError);
+    return hasError;
+  }
+
+  try {
+    const transaction = await Transaction.insertMany(data);
+    return true;
+  } catch (error) {
+    console.error(error);
+    return error;
+  }
+}
+
 // read
 router.get('/', asyncMiddleware(async (req: Request, res: Response) => {
   console.log('bruh');
@@ -37,7 +61,7 @@ router.delete('/all', asyncMiddleware(async (req: Request, res: Response) => {
   res.send(result);
 }));
 
-// // create
+// create for testing
 // router.post('/', asyncMiddleware(async (req: Request, res: Response) => {
 //   const transaction = await Transaction(req.body);
 //   await transaction.save();

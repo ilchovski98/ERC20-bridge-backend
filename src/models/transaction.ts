@@ -1,10 +1,17 @@
+// @ts-nocheck
 import mongoose from 'mongoose';
 import Joi from 'joi';
 
 import { validationForAddress } from '../utils';
-import { TransactionData } from '../utils/types';
+import { TransactionData, ClaimData } from '../utils/types';
 
 const transactionSchema = new mongoose.Schema({
+  id: {
+    type: String,
+    required: function(value) {
+      return `${this?.txHash}-${this?.blockHash}-${this?.logIndex}` === value;
+    }
+  },
   eventName: {
     type: String,
     required: true,
@@ -71,14 +78,18 @@ const transactionSchema = new mongoose.Schema({
     type: Number,
     required: true
   },
+  claimData: {
+    type: Object,
+    required: true // place some validation
+  },
   claimSignature: {
     type: String,
     required: true,
-    maxlength: 66
+    maxlength: 66 // add validation check
   },
   isClaimed: {
     type: Boolean,
-    required: true,
+    required: true // add validation check
   },
   claimedTxHash: {
     type: String,
@@ -101,6 +112,7 @@ export function validateTransaction(transaction: TransactionData) {
   const chainId = Joi.number().min(1).required();
 
   const schema = Joi.object({
+    id: Joi.string().required(),
     eventName: Joi.string().min(2).required(),
     fromChain: chainId,
     toChain: chainId,

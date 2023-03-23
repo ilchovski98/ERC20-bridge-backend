@@ -88,3 +88,13 @@ export type SignersAndBridgesByChain = {
     bridgeContract: Contract;
   }
 }
+
+export type RawEventData = {
+  parsedLog: ethers.utils.LogDescription,
+  transactionData: {
+    transactionHash: string;
+    blockHash: string;
+    logIndex: number;
+    blockNumber: number;
+  }
+}

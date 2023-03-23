@@ -64,6 +64,16 @@ router.post('/', asyncMiddleware(async (req: Request, res: Response) => {
   res.send(lastBlockNumberTx);
 }));
 
+// for testing
+router.post('/many', asyncMiddleware(async (req: Request, res: Response) => {
+  // const { error } = validateLastBlockNumber(req.body);
+  // if (error) return res.status(400).send(error.details[0].message);
+
+  const lastBlockNumberTx = await LastBlockNumber.insertMany(req.body);
+  // await lastBlockNumberTx.save();
+  res.send(lastBlockNumberTx);
+}));
+
 // read all
 router.get('/', asyncMiddleware(async (req: Request, res: Response) => {
   const lastBlockNumbers = await LastBlockNumber.find({});

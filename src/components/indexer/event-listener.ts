@@ -4,15 +4,8 @@ import { signersAndBridgesByChain } from '../signers/signers';
 import { infoByChain } from '../../config';
 import { getLastProcessedBlockNumber } from '../../routes/lastBlockNumbers';
 import bridgeABI from '../../utils/contract/abi/Bridge.json';
-
-type RawEventData = {
-  parsedLog: ethers.utils.LogDescription,
-  transactionData: {
-    transactionHash: string;
-    blockHash: string;
-    logIndex: number;
-  }
-}
+import { parseDepositEvent, parseClaimEvent, parseDepositEvents, parseClaimEvents } from '../parser/parser';
+import { RawEventData } from '../../utils/types';
 
 // if the node is out of date sync
 export const sync = async () => {
@@ -51,14 +44,16 @@ export const sync = async () => {
           transactionHash: log.transactionHash,
           blockHash: log.blockHash,
           logIndex: log.logIndex,
+          blockNumber: log.blockNumber,
         }
       }
 
-      if (index === 0) {
+      if (rawEventData.parsedLog.name === 'BurnWrappedToken') {
         console.log('---------------------------------------------------');
         console.log(rawEventData);
         console.log('---------------------------------------------------');
       }
+
 
       allEventsFromAllChains.push(rawEventData);
     });
@@ -74,8 +69,8 @@ export const sync = async () => {
 
     I have to seperate the events by type in order to process the deposit tx first so that each claim tx to have already saved deposit tx.
   */
-  const depositTx = [];
-  const claimTx = [];
+  const depositTx: RawEventData[] = [];
+  const claimTx: RawEventData[] = [];
 
   allEventsFromAllChains.forEach((eventData: RawEventData) => {
     const eventParsedLog = eventData.parsedLog;
@@ -88,6 +83,9 @@ export const sync = async () => {
 
   console.log('depositTx', depositTx.length);
   console.log('claimTx', claimTx.length);
+
+  await parseDepositEvents(depositTx);
+  await parseClaimEvents(claimTx);
 }
 
 // after sync start listening for the events for each bridge
