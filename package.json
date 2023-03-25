@@ -9,6 +9,7 @@
     "start": "npx nodemon ./src/server.ts"
   },
   "dependencies": {
+    "@limechain/multicall": "^0.0.2",
     "ethers": "^5.7.2",
     "express": "^4.18.2",
     "lodash": "^4.17.21",

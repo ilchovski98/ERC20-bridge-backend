@@ -1,5 +1,6 @@
 import { ethers, Wallet, Contract } from 'ethers';
 import { SigningKey } from 'ethers/lib/utils';
+import { Responder } from '../../components/signers/signers';
 
 export interface InfoByChain {
   [key: number]: {
@@ -56,6 +57,7 @@ export type ClaimData = {
 }
 
 export type TransactionData = {
+  id: string;
   eventName: string;
   fromChain: string;
   toChain: string;
@@ -66,9 +68,10 @@ export type TransactionData = {
   originalChainId: string;
   txHash: string;
   blockHash: string;
-  logIndex: string;
+  logIndex: number;
   blockNumber: number;
-  claimSignature: string;
+  claimData: object;
+  claimSignature: object;
   isClaimed: boolean;
   claimedTxHash: string;
   claimedBlockHash: string;
@@ -82,11 +85,7 @@ export type LastBlockNumberData = {
 }
 
 export type SignersAndBridgesByChain = {
-  [chain: number | string]: {
-    provider: ethers.providers.JsonRpcProvider;
-    signer: Wallet;
-    bridgeContract: Contract;
-  }
+  [chain: number | string]: Responder;
 }
 
 export type RawEventData = {
@@ -96,5 +95,15 @@ export type RawEventData = {
     blockHash: string;
     logIndex: number;
     blockNumber: number;
+  }
+}
+
+export type SavedTokenData = {
+  [chainId: number | string]: {
+    [address: string]: {
+      saved: boolean;
+      name: string;
+      symbol: string;
+    }
   }
 }

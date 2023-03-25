@@ -79,16 +79,7 @@ Object.keys(infoByChain).forEach(chain => {
   const chainId = Number(chain);
   const privateKey: any = infoByChain[chainId].bridgeOwnerPrivateKey; // Todo fix any
   const provider = new ethers.providers.JsonRpcProvider(infoByChain[chainId].providerUrl, 'any');
-  const signer = new ethers.Wallet(privateKey, provider);
-  const bridgeContract = new ethers.Contract(
-    infoByChain[chainId].bridgeAddress || '',
-    bridgeABI.abi,
-    signer
-  );
+  const responder = new Responder(infoByChain[chainId].bridgeAddress || '', privateKey, provider)
 
-  signersAndBridgesByChain[chainId] = {
-    provider,
-    signer,
-    bridgeContract
-  }
+  signersAndBridgesByChain[chainId] = responder;
 });

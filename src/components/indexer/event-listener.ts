@@ -4,7 +4,7 @@ import { signersAndBridgesByChain } from '../signers/signers';
 import { infoByChain } from '../../config';
 import { getLastProcessedBlockNumber } from '../../routes/lastBlockNumbers';
 import bridgeABI from '../../utils/contract/abi/Bridge.json';
-import { parseDepositEvent, parseClaimEvent, parseDepositEvents, parseClaimEvents } from '../parser/parser';
+import { saveDepositTransaction, processClaimEvent, processDepositEvents, processClaimEvents } from '../event-processor/event-procesor';
 import { RawEventData } from '../../utils/types';
 
 // if the node is out of date sync
@@ -18,7 +18,7 @@ export const sync = async () => {
     const currentChain = chains[i];
     const provider = signersAndBridgesByChain[currentChain].provider;
     const chainId = (await provider.getNetwork()).chainId;
-    const bridgeContract = signersAndBridgesByChain[chainId].bridgeContract;
+    const bridgeContract = signersAndBridgesByChain[chainId].bridge;
     const startBlock = (await getLastProcessedBlockNumber(chainId)).lastBlockNumber;
     const currentBlock = await provider.getBlockNumber();
 
@@ -37,7 +37,7 @@ export const sync = async () => {
     console.log('logs for ', chainId);
 
     const contractInterface = new ethers.utils.Interface(bridgeABI.abi);
-    logs.forEach((log, index) => {
+    logs.forEach(log => {
       const rawEventData: RawEventData = {
         parsedLog: contractInterface.parseLog({ data: log.data, topics: log.topics }),
         transactionData: {
@@ -84,8 +84,8 @@ export const sync = async () => {
   console.log('depositTx', depositTx.length);
   console.log('claimTx', claimTx.length);
 
-  await parseDepositEvents(depositTx);
-  await parseClaimEvents(claimTx);
+  await processDepositEvents(depositTx);
+  await processClaimEvents(claimTx);
 }
 
 // after sync start listening for the events for each bridge

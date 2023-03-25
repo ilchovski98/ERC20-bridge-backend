@@ -83,9 +83,8 @@ const transactionSchema = new mongoose.Schema({
     required: true // place some validation
   },
   claimSignature: {
-    type: String,
-    required: true,
-    maxlength: 66 // add validation check
+    type: Object,
+    required: true  // place some validation
   },
   isClaimed: {
     type: Boolean,
@@ -125,7 +124,8 @@ export function validateTransaction(transaction: TransactionData) {
     blockHash: bytes32,
     logIndex: Joi.number().required(),
     blockNumber: Joi.number().min(1).required(),
-    claimSignature: bytes32,
+    claimData: Joi.object().required(),
+    claimSignature: Joi.object().required(),
     isClaimed: Joi.boolean().required(),
     claimedTxHash: bytes32,
     claimedBlockHash: bytes32,
