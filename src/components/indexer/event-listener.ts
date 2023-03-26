@@ -9,6 +9,17 @@ import { executeAllRequests } from '../../utils';
 import bridgeABI from '../../utils/contract/abi/Bridge.json';
 import { RawEventData } from '../../utils/types';
 
+const firstTopic = [
+  ethers.utils.id('LockOriginalToken(address,uint256,address,address,uint256,uint256)'),
+  ethers.utils.id('BurnWrappedToken(address,uint256,address,address,uint256,uint256,address,uint256)'),
+  ethers.utils.id('ReleaseOriginalToken(address,uint256,address,address,uint256,uint256,address,bytes32,bytes32,uint256)'),
+  ethers.utils.id('MintWrappedToken(address,uint256,address,address,uint256,uint256,address,uint256,bytes32,bytes32,uint256)')
+];
+
+const filter = {
+  topics: [firstTopic]
+}
+
 const seperateEventsByType = (events: RawEventData[]) => {
   const depositTx: RawEventData[] = [];
   const claimTx: RawEventData[] = [];
@@ -41,17 +52,6 @@ export const sync = async () => {
     const startBlock = (await getLastProcessedBlockNumber(chainId)).lastBlockNumber;
     const currentBlock = await provider.getBlockNumber();
     currentBlockBeforeProcessing[currentChain] = currentBlock;
-
-    const firstTopic = [
-      ethers.utils.id('LockOriginalToken(address,uint256,address,address,uint256,uint256)'),
-      ethers.utils.id('BurnWrappedToken(address,uint256,address,address,uint256,uint256,address,uint256)'),
-      ethers.utils.id('ReleaseOriginalToken(address,uint256,address,address,uint256,uint256,address,bytes32,bytes32,uint256)'),
-      ethers.utils.id('MintWrappedToken(address,uint256,address,address,uint256,uint256,address,uint256,bytes32,bytes32,uint256)')
-    ];
-
-    const filter = {
-      topics: [firstTopic]
-    }
 
     const logs = await bridgeContract.queryFilter(filter, startBlock, currentBlock);
     const contractInterface = new ethers.utils.Interface(bridgeABI.abi);
@@ -122,7 +122,34 @@ export const sync = async () => {
 
 // after sync start listening for the events for each bridge
 export const initListeners = () => {
-  // todo
-  console.log('Listeners are initialised...');
+  const chains = Object.keys(infoByChain);
 
+  chains.forEach(chain => {
+    signersAndBridgesByChain[chain].bridge.on(filter, async (log) => {
+      const currentBlock = await signersAndBridgesByChain[chain].provider.getBlockNumber();
+      const contractInterface = new ethers.utils.Interface(bridgeABI.abi);
+      const rawEventData: RawEventData = {
+        parsedLog: contractInterface.parseLog({ data: log.data, topics: log.topics }),
+        transactionData: {
+          transactionHash: log.transactionHash,
+          blockHash: log.blockHash,
+          logIndex: log.logIndex,
+          blockNumber: log.blockNumber,
+        }
+      };
+      console.log(`Bridge event on chainId ${chain} detected: ${rawEventData.parsedLog.name}`);
+
+      const eventParsedLog = rawEventData.parsedLog;
+
+      // do apropriate action according to type: save or process
+      if (eventParsedLog.name === 'LockOriginalToken' || eventParsedLog.name === 'BurnWrappedToken') {
+        await saveDepositEvent(rawEventData);
+      } else if (eventParsedLog.name === 'ReleaseOriginalToken' || eventParsedLog.name === 'MintWrappedToken') {
+        await processClaimEvent(rawEventData);
+      }
+      // update last block number for the chain
+      await updateLastBlockNumber(chain, currentBlock);
+    })
+  });
+  console.log('Listeners are initialised...');
 }
