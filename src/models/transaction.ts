@@ -8,6 +8,7 @@ import { TransactionData, ClaimData } from '../utils/types';
 const transactionSchema = new mongoose.Schema({
   id: {
     type: String,
+    unique: true,
     required: function(value) {
       return `${this?.txHash}-${this?.blockHash}-${this?.logIndex}` === value;
     }
@@ -92,14 +93,17 @@ const transactionSchema = new mongoose.Schema({
   },
   claimedTxHash: {
     type: String,
-    maxlength: 66
+    maxlength: 66,
+    required: false
   },
   claimedBlockHash: {
     type: String,
-    maxlength: 66
+    maxlength: 66,
+    required: false
   },
   claimedLogIndex: {
-    type: Number
+    type: Number,
+    required: false
   }
 });
 
@@ -127,8 +131,8 @@ export function validateTransaction(transaction: TransactionData) {
     claimData: Joi.object().required(),
     claimSignature: Joi.object().required(),
     isClaimed: Joi.boolean().required(),
-    claimedTxHash: bytes32,
-    claimedBlockHash: bytes32,
+    claimedTxHash: Joi.string().max(66).allow(''),
+    claimedBlockHash: Joi.string().max(66).allow(''),
     claimedLogIndex: Joi.number()
   });
   return schema.validate(transaction);

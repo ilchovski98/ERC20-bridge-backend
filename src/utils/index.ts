@@ -35,3 +35,19 @@ export const multicallTokenData = async (coinAddress: string, methodNames: strin
 
   return outputs;
 };
+
+export const executeAllRequests = async (args: any[], callback: Function) => {
+  const promise = [];
+
+  for (let i = 0; i < args.length; i++) {
+    const newPromise = new Promise((resolve, reject) => {
+      return callback(args[i]).then((response: any) => {
+        resolve(response);
+      }, (error: any) => reject(new Error(error)))
+    });
+
+    promise.push(newPromise.catch(error => console.error(error)));
+  }
+
+  await Promise.all(promise);
+}

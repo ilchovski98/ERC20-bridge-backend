@@ -1,9 +1,10 @@
 import { ethers } from 'ethers';
 
 import { signersAndBridgesByChain } from '../signers/signers';
+import { executeAllRequests } from '../../utils';
 import { ClaimData, RawEventData, TransactionData } from '../../utils/types';
 import { getTokenData } from '../tokenData/tokenData';
-import { createTransaction, getTransactionById, findTransactionAndUpdate, createTransactionInBatch } from '../../routes/transactions';
+import { createTransaction, getTransactionById, findTransactionAndUpdate } from '../../routes/transactions';
 
 /*
   Events:
@@ -54,18 +55,16 @@ export const processDepositEvent = async (eventData: RawEventData) => {
 
     const claimSignature = await signersAndBridgesByChain[args.sourceChainId].signClaimData(claimData);
 
-    console.log('claimSignature', claimSignature);
-
     parseTransaction = {
       id: `${transactionData.transactionHash}-${transactionData.blockHash}-${transactionData.logIndex}`,
       eventName: parsedLog.name,
-      fromChain: args.sourceChainId,
-      toChain: args.toChainId,
+      fromChain: args.sourceChainId.toNumber(),
+      toChain: args.toChainId.toNumber(),
       fromAddress: args.sender,
       toAddress: args.recepient,
       transferedTokenAddress: args.lockedTokenAddress,
       originalTokenAddress: args.lockedTokenAddress,
-      originalChainId: args.sourceChainId,
+      originalChainId: args.sourceChainId.toNumber(),
       txHash: transactionData.transactionHash,
       blockHash: transactionData.blockHash,
       logIndex: transactionData.logIndex,
@@ -121,13 +120,13 @@ export const processDepositEvent = async (eventData: RawEventData) => {
     parseTransaction = {
       id: `${transactionData.transactionHash}-${transactionData.blockHash}-${transactionData.logIndex}`,
       eventName: parsedLog.name,
-      fromChain: args.sourceChainId,
-      toChain: args.toChainId,
+      fromChain: args.sourceChainId.toNumber(),
+      toChain: args.toChainId.toNumber(),
       fromAddress: args.sender,
       toAddress: args.recepient,
       transferedTokenAddress: args.burnedWrappedTokenAddress,
       originalTokenAddress: args.originalTokenAddress,
-      originalChainId: args.originalTokenChainId,
+      originalChainId: args.originalTokenChainId.toNumber(),
       txHash: transactionData.transactionHash,
       blockHash: transactionData.blockHash,
       logIndex: transactionData.logIndex,
@@ -149,10 +148,14 @@ export const processDepositEvent = async (eventData: RawEventData) => {
   return parseTransaction;
 }
 
-export const saveDepositTransaction = async (eventData: RawEventData) => {
-  const transaction = await processDepositEvent(eventData);
-  if (transaction) {
-    await createTransaction(transaction);
+export const saveDepositEvent = async (eventData: RawEventData) => {
+  try {
+    const transaction = await processDepositEvent(eventData);
+    if (transaction) {
+      await createTransaction(transaction);
+    }
+  } catch (error) {
+    console.error(error);
   }
 }
 
@@ -177,26 +180,10 @@ export const processClaimEvent = async (eventData: RawEventData) => {
   }
 }
 
-export const processDepositEvents = async (eventsData: RawEventData[]) => {
-  const batch: TransactionData[] = [];
-
-  for (let i = 0; i < eventsData.length; i++) {
-    const result = await processDepositEvent(eventsData[i]);
-    if (result) {
-      batch.push(result);
-    }
-  }
-
-  return batch;
-}
-
 export const saveDepositEvents = async (eventsData: RawEventData[]) => {
-  const batch = await processDepositEvents(eventsData);
-  await createTransactionInBatch(batch);
+  await executeAllRequests(eventsData, saveDepositEvent);
 }
 
 export const processClaimEvents = async (eventsData: RawEventData[]) => {
-  for (let i = 0; i < eventsData.length; i++) {
-    await processClaimEvent(eventsData[i]);
-  }
+  await executeAllRequests(eventsData, processClaimEvent);
 }

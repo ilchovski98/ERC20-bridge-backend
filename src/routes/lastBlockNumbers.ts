@@ -42,9 +42,13 @@ export const createLastBlockPerChainIfNotPresent = async (chain: number | any, s
   }
 }
 
+export const updateLastBlockNumber = async (chainId: number | string, lastBlockNumber: number) => {
+  const result = await LastBlockNumber.findOneAndUpdate({ chain: chainId }, { lastBlockNumber: lastBlockNumber });
+  await result?.save();
+}
+
 export const getLastProcessedBlockNumber = async (chainId: number | string): Promise<LastBlockNumberData> => {
   const result =  await LastBlockNumber.findOne({ chain: chainId });
-  console.log('result', result);
 
   return {
     chain: result?.chain || 0,

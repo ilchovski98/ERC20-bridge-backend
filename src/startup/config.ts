@@ -1,7 +1,7 @@
 import { signersAndBridgesByChain } from '../components/signers/signers';
 import { createLastBlockPerChainIfNotPresent } from '../routes/lastBlockNumbers';
 import { infoByChain } from '../config';
-import { sync } from '../components/indexer/event-listener';
+import { sync, initListeners } from '../components/indexer/event-listener';
 
 const main = async () => {
   /*
@@ -14,6 +14,7 @@ const main = async () => {
   }
 
   await sync();
+  initListeners();
 }
 
 module.exports = function() {

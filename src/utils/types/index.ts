@@ -59,13 +59,13 @@ export type ClaimData = {
 export type TransactionData = {
   id: string;
   eventName: string;
-  fromChain: string;
-  toChain: string;
+  fromChain: number;
+  toChain: number;
   fromAddress: string;
   toAddress: string;
   transferedTokenAddress: string;
   originalTokenAddress: string;
-  originalChainId: string;
+  originalChainId: number;
   txHash: string;
   blockHash: string;
   logIndex: number;

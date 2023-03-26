@@ -23,30 +23,6 @@ export const createTransaction = async (data: TransactionData) => {
   }
 }
 
-export const createTransactionInBatch = async (data: TransactionData[]) => {
-  let hasError;
-
-  data.forEach(element => {
-    const { error } = validateTransaction(element);
-    if (error) {
-      hasError = error;
-    }
-  });
-
-  if (hasError) {
-    console.error(hasError);
-    return hasError;
-  }
-
-  try {
-    await Transaction.insertMany(data);
-    return true;
-  } catch (error) {
-    console.error(error);
-    return error;
-  }
-}
-
 export const getTransactionById = async (id: string) => {
   return await Transaction.findOne({ id });
 }

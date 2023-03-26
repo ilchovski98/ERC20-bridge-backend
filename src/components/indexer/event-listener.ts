@@ -1,26 +1,46 @@
 import { ethers } from 'ethers';
 
-import { signersAndBridgesByChain } from '../signers/signers';
 import { infoByChain } from '../../config';
-import { getLastProcessedBlockNumber } from '../../routes/lastBlockNumbers';
+import { signersAndBridgesByChain } from '../signers/signers';
+import { getLastProcessedBlockNumber, updateLastBlockNumber } from '../../routes/lastBlockNumbers';
+import { saveDepositEvent, processClaimEvent, processClaimEvents, saveDepositEvents } from '../event-processor/event-procesor';
+import { executeAllRequests } from '../../utils';
+
 import bridgeABI from '../../utils/contract/abi/Bridge.json';
-import { saveDepositTransaction, processClaimEvent, processDepositEvents, processClaimEvents, saveDepositEvents } from '../event-processor/event-procesor';
 import { RawEventData } from '../../utils/types';
+
+const seperateEventsByType = (events: RawEventData[]) => {
+  const depositTx: RawEventData[] = [];
+  const claimTx: RawEventData[] = [];
+
+  events.forEach((eventData: RawEventData) => {
+    const eventParsedLog = eventData.parsedLog;
+    if (eventParsedLog.name === 'LockOriginalToken' || eventParsedLog.name === 'BurnWrappedToken') {
+      depositTx.push(eventData);
+    } else if (eventParsedLog.name === 'ReleaseOriginalToken' || eventParsedLog.name === 'MintWrappedToken') {
+      claimTx.push(eventData);
+    }
+  });
+
+  return {depositTx, claimTx};
+}
 
 // if the node is out of date sync
 export const sync = async () => {
   const chains = Object.keys(infoByChain);
+  const currentBlockBeforeProcessing: any = {};
+  const currentBlockAfterProcessing: any = {};
 
   // Todo fix type any
-  const allEventsFromAllChains: any = [];
+  const allEventsFromAllChains: RawEventData[] = [];
 
-  for (let i = 0; i < chains.length; i++) {
-    const currentChain = chains[i];
+  const getBridgeEventsOnChain = async (currentChain: string) => {
     const provider = signersAndBridgesByChain[currentChain].provider;
     const chainId = (await provider.getNetwork()).chainId;
     const bridgeContract = signersAndBridgesByChain[chainId].bridge;
     const startBlock = (await getLastProcessedBlockNumber(chainId)).lastBlockNumber;
     const currentBlock = await provider.getBlockNumber();
+    currentBlockBeforeProcessing[currentChain] = currentBlock;
 
     const firstTopic = [
       ethers.utils.id('LockOriginalToken(address,uint256,address,address,uint256,uint256)'),
@@ -32,11 +52,10 @@ export const sync = async () => {
     const filter = {
       topics: [firstTopic]
     }
+
     const logs = await bridgeContract.queryFilter(filter, startBlock, currentBlock);
-
-    console.log('logs for ', chainId);
-
     const contractInterface = new ethers.utils.Interface(bridgeABI.abi);
+
     logs.forEach(log => {
       const rawEventData: RawEventData = {
         parsedLog: contractInterface.parseLog({ data: log.data, topics: log.topics }),
@@ -48,18 +67,14 @@ export const sync = async () => {
         }
       }
 
-      if (rawEventData.parsedLog.name === 'ReleaseOriginalToken') {
-        console.log('---------------------------------------------------');
-        console.log(rawEventData);
-        console.log('---------------------------------------------------');
-      }
-
-
       allEventsFromAllChains.push(rawEventData);
     });
 
-    // change lastBlockNumber in db
+    // change lastBlockNumber in db for the corresponding chain
+    await updateLastBlockNumber(currentChain, currentBlock);
   }
+
+  await executeAllRequests(chains, getBridgeEventsOnChain);
 
   /*
     In the database I will save the deposit tx and the claimTx will just add, to the already existing deposit tx, properities like isClaimed, claimSignature and other
@@ -67,28 +82,47 @@ export const sync = async () => {
 
     When processing a claim transaction we will search in the database for the corresponding deposit transaction in order to update it.
 
-    I have to seperate the events by type in order to process the deposit tx first so that each claim tx to have already saved deposit tx.
+    I have to seperate the events by type in order to process the deposit tx first so that each claim tx to have already saved corresponding deposit tx.
   */
-  const depositTx: RawEventData[] = [];
-  const claimTx: RawEventData[] = [];
-
-  allEventsFromAllChains.forEach((eventData: RawEventData) => {
-    const eventParsedLog = eventData.parsedLog;
-    if (eventParsedLog.name === 'LockOriginalToken' || eventParsedLog.name === 'BurnWrappedToken') {
-      depositTx.push(eventData);
-    } else if (eventParsedLog.name === 'ReleaseOriginalToken' || eventParsedLog.name === 'MintWrappedToken') {
-      claimTx.push(eventData);
-    }
-  });
+  const {depositTx, claimTx} = seperateEventsByType(allEventsFromAllChains);
 
   console.log('depositTx', depositTx.length);
   console.log('claimTx', claimTx.length);
 
   await saveDepositEvents(depositTx);
   await processClaimEvents(claimTx);
+
+  // get current blockNumbers
+  const updateCurrentBlockAfterProcessing = async (currentChain: string) => {
+    const provider = signersAndBridgesByChain[currentChain].provider;
+    const currentBlock = await provider.getBlockNumber();
+
+    currentBlockAfterProcessing[currentChain] = currentBlock;
+  }
+
+  await executeAllRequests(chains, updateCurrentBlockAfterProcessing);
+
+  // compare old and new block numbers
+  // if they are not the same run sync again
+  let isSynced = true;
+
+  for (let i = 0; i < chains.length; i++) {
+    if (!(currentBlockBeforeProcessing[chains[i]] === currentBlockAfterProcessing[chains[i]])) {
+      isSynced = false;
+    }
+  }
+
+  if (!isSynced) {
+    console.log('Syncing took too long and new blocks are present. New Sync is started');
+    await sync();
+  } else {
+    console.log('Sync ended successfully!');
+  }
 }
 
 // after sync start listening for the events for each bridge
+export const initListeners = () => {
+  // todo
+  console.log('Listeners are initialised...');
 
-// call the right parser for the right event
-
+}
