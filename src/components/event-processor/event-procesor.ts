@@ -3,7 +3,7 @@ import { ethers } from 'ethers';
 import { signersAndBridgesByChain } from '../signers/signers';
 import { ClaimData, RawEventData, TransactionData } from '../../utils/types';
 import { getTokenData } from '../tokenData/tokenData';
-import { createTransaction } from '../../routes/transactions';
+import { createTransaction, getTransactionById, findTransactionAndUpdate, createTransactionInBatch } from '../../routes/transactions';
 
 /*
   Events:
@@ -157,21 +157,46 @@ export const saveDepositTransaction = async (eventData: RawEventData) => {
 }
 
 export const processClaimEvent = async (eventData: RawEventData) => {
+  const parsedLog = eventData.parsedLog;
+  const args = parsedLog.args;
+  const transactionData = eventData.transactionData;
   // search for id in database
-  // if not found throw warrning that there is a claim event without deposit transaction (potential bug)
-  // if found update is claimed and claimTXHash and etc
+  // todo check when you try to update non existent record in db what happens we can avoid calling db twice
+  const depositId = `${args.transactionHash}-${args.blockHash}-${args.logIndex}`;
+  const result = await getTransactionById(depositId);
+
+  if (result) {
+    await findTransactionAndUpdate({ id: depositId }, {
+      isClaimed: true,
+      claimedTxHash: transactionData.transactionHash,
+      claimedBlockHash: transactionData.blockHash,
+      claimedLogIndex: transactionData.logIndex
+    });
+  } else {
+    console.error(`There is no recorded deposit transaction for claim event:`, transactionData);
+  }
 }
 
-export const processDepositEvents = async (eventData: RawEventData[]) => {
-  // processDepositEvent() on a loop in array
-  // batch save in database
+export const processDepositEvents = async (eventsData: RawEventData[]) => {
+  const batch: TransactionData[] = [];
+
+  for (let i = 0; i < eventsData.length; i++) {
+    const result = await processDepositEvent(eventsData[i]);
+    if (result) {
+      batch.push(result);
+    }
+  }
+
+  return batch;
 }
 
-export const processClaimEvents = async (eventData: RawEventData[]) => {
-  // processClaimEvent() on a loop
+export const saveDepositEvents = async (eventsData: RawEventData[]) => {
+  const batch = await processDepositEvents(eventsData);
+  await createTransactionInBatch(batch);
 }
 
-
-// based on the event type deposit || claim will either
-// deposit : get needed data from the event, create claimData and sign it, store the data and the signature in the transaction
-// claim : get needed data from the event, identify the deposit transaction and populate the needed fields claimed and etc...
+export const processClaimEvents = async (eventsData: RawEventData[]) => {
+  for (let i = 0; i < eventsData.length; i++) {
+    await processClaimEvent(eventsData[i]);
+  }
+}

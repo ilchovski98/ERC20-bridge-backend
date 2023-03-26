@@ -39,7 +39,7 @@ export const createTransactionInBatch = async (data: TransactionData[]) => {
   }
 
   try {
-    const transaction = await Transaction.insertMany(data);
+    await Transaction.insertMany(data);
     return true;
   } catch (error) {
     console.error(error);
@@ -47,10 +47,17 @@ export const createTransactionInBatch = async (data: TransactionData[]) => {
   }
 }
 
+export const getTransactionById = async (id: string) => {
+  return await Transaction.findOne({ id });
+}
+
+export const findTransactionAndUpdate = async (find: Object, update: Object) => {
+  const transaction = await Transaction.findOneAndUpdate(find, update);
+  await transaction?.save();
+}
+
 // read
 router.get('/', asyncMiddleware(async (req: Request, res: Response) => {
-  console.log('bruh');
-
   const transactions = await Transaction.find({});
   res.send(transactions);
 }));

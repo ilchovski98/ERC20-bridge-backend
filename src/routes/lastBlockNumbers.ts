@@ -82,7 +82,7 @@ router.get('/', asyncMiddleware(async (req: Request, res: Response) => {
 
 // read by chain
 router.get('/:chainId', asyncMiddleware(async (req: Request, res: Response) => {
-  const lastBlockNumbers = await LastBlockNumber.find({ chain: req.params.chainId });
+  const lastBlockNumbers = await LastBlockNumber.findOne({ chain: req.params.chainId });
   res.send(lastBlockNumbers);
 }));
 

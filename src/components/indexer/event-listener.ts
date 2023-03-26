@@ -4,7 +4,7 @@ import { signersAndBridgesByChain } from '../signers/signers';
 import { infoByChain } from '../../config';
 import { getLastProcessedBlockNumber } from '../../routes/lastBlockNumbers';
 import bridgeABI from '../../utils/contract/abi/Bridge.json';
-import { saveDepositTransaction, processClaimEvent, processDepositEvents, processClaimEvents } from '../event-processor/event-procesor';
+import { saveDepositTransaction, processClaimEvent, processDepositEvents, processClaimEvents, saveDepositEvents } from '../event-processor/event-procesor';
 import { RawEventData } from '../../utils/types';
 
 // if the node is out of date sync
@@ -48,7 +48,7 @@ export const sync = async () => {
         }
       }
 
-      if (rawEventData.parsedLog.name === 'BurnWrappedToken') {
+      if (rawEventData.parsedLog.name === 'ReleaseOriginalToken') {
         console.log('---------------------------------------------------');
         console.log(rawEventData);
         console.log('---------------------------------------------------');
@@ -84,7 +84,7 @@ export const sync = async () => {
   console.log('depositTx', depositTx.length);
   console.log('claimTx', claimTx.length);
 
-  await processDepositEvents(depositTx);
+  await saveDepositEvents(depositTx);
   await processClaimEvents(claimTx);
 }
 
