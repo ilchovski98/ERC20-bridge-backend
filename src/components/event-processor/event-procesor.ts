@@ -76,16 +76,14 @@ export const processDepositEvent = async (eventData: RawEventData) => {
   } else if (parsedLog.name == 'BurnWrappedToken') {
     let targetTokenAddress, tokenData;
 
-    if (args.originalTokenChainId === args.toChainId) {
+    if (args.originalTokenChainId.toString() === args.toChainId.toString()) {
       // Claiming original token
       targetTokenAddress = ethers.constants.AddressZero;
       tokenData = await getTokenData(args.originalTokenAddress, args.originalTokenChainId);
-      console.log('Claiming original token', tokenData);
     } else {
       // Claiming wrapped token
       targetTokenAddress = args.originalTokenAddress;
       tokenData = await getTokenData(args.burnedWrappedTokenAddress, args.sourceChainId);
-      console.log('Claiming wrapped token', tokenData);
     }
 
     const claimData: ClaimData = {
