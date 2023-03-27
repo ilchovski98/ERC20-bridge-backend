@@ -70,6 +70,7 @@ export type TransactionData = {
   blockHash: string;
   logIndex: number;
   blockNumber: number;
+  blockTimestamp: number;
   claimData: object;
   isClaimed: boolean;
   claimedTxHash: string;

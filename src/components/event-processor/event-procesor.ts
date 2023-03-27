@@ -23,6 +23,7 @@ export const processDepositEvent = async (eventData: RawEventData) => {
   const args = parsedLog.args;
   const transactionData = eventData.transactionData;
   let parseTransaction: TransactionData | undefined;
+  const timestamp = (await signersAndBridgesByChain[args.sourceChainId].provider.getBlock(transactionData.blockNumber)).timestamp;
 
   if (parsedLog.name == 'LockOriginalToken') {
     const tokenData = await getTokenData(args.lockedTokenAddress, args.sourceChainId);
@@ -67,6 +68,7 @@ export const processDepositEvent = async (eventData: RawEventData) => {
       blockHash: transactionData.blockHash,
       logIndex: transactionData.logIndex,
       blockNumber: transactionData.blockNumber,
+      blockTimestamp: timestamp,
       claimData: claimData,
       isClaimed: false,
       claimedTxHash: '',
@@ -126,6 +128,7 @@ export const processDepositEvent = async (eventData: RawEventData) => {
       blockHash: transactionData.blockHash,
       logIndex: transactionData.logIndex,
       blockNumber: transactionData.blockNumber,
+      blockTimestamp: timestamp,
       claimData: claimData,
       isClaimed: false,
       claimedTxHash: '',

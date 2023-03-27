@@ -79,6 +79,10 @@ const transactionSchema = new mongoose.Schema({
     type: Number,
     required: true
   },
+  blockTimestamp: {
+    type: Number,
+    required: true
+  },
   claimData: {
     type: Object,
     required: true // place some validation
@@ -124,6 +128,7 @@ export function validateTransaction(transaction: TransactionData) {
     blockHash: bytes32,
     logIndex: Joi.number().required(),
     blockNumber: Joi.number().min(1).required(),
+    blockTimestamp: Joi.number().required(),
     claimData: Joi.object().required(),
     isClaimed: Joi.boolean().required(),
     claimedTxHash: Joi.string().max(66).allow(''),

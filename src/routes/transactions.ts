@@ -63,11 +63,11 @@ router.get('/claim/:transactionId', asyncMiddleware(async (req: Request, res: Re
 }));
 
 // get specific user chain transactions
-router.get('/:userAddress', asyncMiddleware(async (req: Request, res: Response) => {
+router.get('/history/:userAddress', asyncMiddleware(async (req: Request, res: Response) => {
   if (!ethers.utils.isAddress(req.params.userAddress)) return res.status(400).send('Provided user address is invalid!');
   const transactions = await Transaction
     .find({ fromAddress: req.params.userAddress })
-    .sort({ blockNumber: -1});
+    .sort({ blockTimestamp: -1});
 
   res.send(transactions);
 }));
@@ -77,7 +77,7 @@ router.get('/:userAddress/:chainId', asyncMiddleware(async (req: Request, res: R
   if (!(Number(req.params.chainId) > 0)) return res.status(400).send('Provided chainId is invalid!');
   const transactions = await Transaction
     .find({ fromAddress: req.params.userAddress, toChain: req.params.chainId })
-    .sort({ blockNumber: -1});
+    .sort({ blockTimestamp: -1});
 
   res.send(transactions);
 }));
