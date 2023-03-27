@@ -1,4 +1,4 @@
-import { ethers, Wallet, Contract } from 'ethers';
+import { ethers, BigNumber } from 'ethers';
 import { SigningKey } from 'ethers/lib/utils';
 import { Responder } from '../../components/signers/signers';
 
@@ -18,7 +18,7 @@ export type OriginalToken = {
 
 export type User = {
   _address: string;
-  chainId: string;
+  chainId: BigNumber;
 }
 
 export type SourceTxData = {
@@ -39,20 +39,20 @@ export type DepositData = {
   spender: string;
   token: string;
   value: string;
-  deadline: string;
+  deadline: BigNumber;
   approveTokenTransferSig: Signature;
 }
 
 export type ClaimData = {
   from: User;
   to: User;
-  value: string;
+  value: BigNumber;
   token: OriginalToken; // used to indicate which is the original ERC20 (info that must be stored on all bridges)
   depositTxSourceToken: string; // the deposited token address that triggered the transfer (WERC20/ERC20)
   targetTokenAddress: string; // Todo refactor contract to not use this // if the operator populates this address then the token will be released else it indicates that the claimed token is a wrapped one
   targetTokenName: string; // provided by operator to name new wrapped token
   targetTokenSymbol: string; // provided by operator to name new wrapped token
-  deadline: string; // provided by operator in case we want to have a deadline (most of the times there will be none)
+  deadline: BigNumber; // provided by operator in case we want to have a deadline (most of the times there will be none)
   sourceTxData: SourceTxData;
 }
 
@@ -71,7 +71,6 @@ export type TransactionData = {
   logIndex: number;
   blockNumber: number;
   claimData: object;
-  claimSignature: object;
   isClaimed: boolean;
   claimedTxHash: string;
   claimedBlockHash: string;

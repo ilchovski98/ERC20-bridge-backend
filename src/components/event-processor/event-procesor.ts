@@ -43,17 +43,15 @@ export const processDepositEvent = async (eventData: RawEventData) => {
       },
       depositTxSourceToken: args.lockedTokenAddress,
       targetTokenAddress: ethers.constants.AddressZero,
-      targetTokenName: 'Wrapped ' + tokenData.name,
+      targetTokenName: 'Wrapped ' + tokenData.name, // todo names on site doesnt work
       targetTokenSymbol: 'W' + tokenData.symbol,
-      deadline: ethers.constants.MaxUint256.toString(),
+      deadline: ethers.constants.MaxUint256,
       sourceTxData: {
         transactionHash: transactionData.transactionHash,
         blockHash: transactionData.blockHash,
         logIndex: transactionData.logIndex,
       }
     }
-
-    const claimSignature = await signersAndBridgesByChain[args.sourceChainId].signClaimData(claimData);
 
     parseTransaction = {
       id: `${transactionData.transactionHash}-${transactionData.blockHash}-${transactionData.logIndex}`,
@@ -70,7 +68,6 @@ export const processDepositEvent = async (eventData: RawEventData) => {
       logIndex: transactionData.logIndex,
       blockNumber: transactionData.blockNumber,
       claimData: claimData,
-      claimSignature: claimSignature,
       isClaimed: false,
       claimedTxHash: '',
       claimedBlockHash: '',
@@ -83,10 +80,12 @@ export const processDepositEvent = async (eventData: RawEventData) => {
       // Claiming original token
       targetTokenAddress = ethers.constants.AddressZero;
       tokenData = await getTokenData(args.originalTokenAddress, args.originalTokenChainId);
+      console.log('Claiming original token', tokenData);
     } else {
       // Claiming wrapped token
       targetTokenAddress = args.originalTokenAddress;
       tokenData = await getTokenData(args.burnedWrappedTokenAddress, args.sourceChainId);
+      console.log('Claiming wrapped token', tokenData);
     }
 
     const claimData: ClaimData = {
@@ -107,15 +106,13 @@ export const processDepositEvent = async (eventData: RawEventData) => {
       targetTokenAddress: targetTokenAddress,
       targetTokenName: tokenData.name,
       targetTokenSymbol: tokenData.symbol,
-      deadline: ethers.constants.MaxUint256.toString(),
+      deadline: ethers.constants.MaxUint256,
       sourceTxData: {
         transactionHash: transactionData.transactionHash,
         blockHash: transactionData.blockHash,
         logIndex: transactionData.logIndex,
       },
     };
-
-    const claimSignature = await signersAndBridgesByChain[args.sourceChainId].signClaimData(claimData);
 
     parseTransaction = {
       id: `${transactionData.transactionHash}-${transactionData.blockHash}-${transactionData.logIndex}`,
@@ -132,7 +129,6 @@ export const processDepositEvent = async (eventData: RawEventData) => {
       logIndex: transactionData.logIndex,
       blockNumber: transactionData.blockNumber,
       claimData: claimData,
-      claimSignature: claimSignature,
       isClaimed: false,
       claimedTxHash: '',
       claimedBlockHash: '',

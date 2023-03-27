@@ -1,17 +1,5 @@
-
-// const app: Express = express();
-// const port = 3000;
-
-// app.get('/', (req: Request, res: Response)=>{
-  //   res.send('Hello, this is Express + TypeScript');
-// });
-
-// app.listen(port, ()=> {
-  //   console.log(`[Server]: I am running at https://localhost:${port}`);
-  // });
-
-import express, {Express, Request, Response} from 'express';
-import { createLastBlockPerChainIfNotPresent } from './routes/lastBlockNumbers';
+import express, { Express } from 'express';
+import cors from 'cors';
 
 require('dotenv').config();
 
@@ -19,12 +7,11 @@ require('dotenv').config();
 const app: Express = express();
 const port  = process.env.PORT || 8000;
 
+app.use(cors());
+
 require('./startup/db')();
 require('./startup/config')();
 require('./startup/routes')(app);
-
-
-// createLastBlockPerChainIfNotPresent()
 
 // Create the server
 app.listen(port, () => {
