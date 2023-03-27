@@ -71,7 +71,7 @@ export type TransactionData = {
   logIndex: number;
   blockNumber: number;
   blockTimestamp: number;
-  claimData: object;
+  claimData: ClaimData;
   isClaimed: boolean;
   claimedTxHash: string;
   claimedBlockHash: string;

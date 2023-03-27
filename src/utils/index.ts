@@ -49,5 +49,5 @@ export const executeAllRequests = async (args: any[], callback: Function) => {
     promise.push(newPromise.catch(error => console.error(error)));
   }
 
-  await Promise.all(promise);
+  return await Promise.all(promise);
 }

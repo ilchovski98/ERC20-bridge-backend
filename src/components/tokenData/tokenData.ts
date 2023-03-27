@@ -28,8 +28,6 @@ export const getTokenData = async (address: string, chainId: number | string) =>
         symbol: result[1]
       }
     }
-    console.log('saved the new token data');
-
 
     return {
       name: result[0],

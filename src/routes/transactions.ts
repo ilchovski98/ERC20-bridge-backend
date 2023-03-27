@@ -6,6 +6,8 @@ import { Transaction, validateTransaction } from '../models/transaction';
 import { TransactionData } from '../utils/types';
 import { asyncMiddleware } from '../middlewares/async';
 import { signersAndBridgesByChain } from '../components/signers/signers';
+import { getTokenData } from '../components/tokenData/tokenData';
+import { executeAllRequests } from '../utils';
 
 const router = express.Router();
 
@@ -62,14 +64,31 @@ router.get('/claim/:transactionId', asyncMiddleware(async (req: Request, res: Re
   res.send(claimSignature);
 }));
 
+const addTokenDataToTransaction = async (transaction: TransactionData) => {
+  let tokenData;
+
+  if (transaction.eventName === 'LockOriginalToken') {
+    tokenData = await getTokenData(transaction.originalTokenAddress, transaction.originalChainId.toString());
+  } else if (transaction.eventName === 'BurnWrappedToken') {
+    tokenData = await getTokenData(transaction.claimData.depositTxSourceToken, transaction.fromChain);
+  }
+  const transactionAlt: any = transaction;
+  return {
+    ...transactionAlt._doc,
+    fromTokenName: tokenData?.name,
+    fromTokenSymbol: tokenData?.symbol
+  }
+}
+
 // get specific user chain transactions
 router.get('/history/:userAddress', asyncMiddleware(async (req: Request, res: Response) => {
   if (!ethers.utils.isAddress(req.params.userAddress)) return res.status(400).send('Provided user address is invalid!');
   const transactions = await Transaction
     .find({ fromAddress: req.params.userAddress })
     .sort({ blockTimestamp: -1});
+  const newTransactions = await executeAllRequests(transactions, addTokenDataToTransaction);
 
-  res.send(transactions);
+  res.send(newTransactions);
 }));
 
 router.get('/:userAddress/:chainId', asyncMiddleware(async (req: Request, res: Response) => {
