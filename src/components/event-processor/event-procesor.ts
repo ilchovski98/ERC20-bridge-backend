@@ -80,11 +80,11 @@ export const processDepositEvent = async (eventData: RawEventData) => {
 
     if (args.originalTokenChainId.toString() === args.toChainId.toString()) {
       // Claiming original token
-      targetTokenAddress = ethers.constants.AddressZero;
+      targetTokenAddress = args.originalTokenAddress;
       tokenData = await getTokenData(args.originalTokenAddress, args.originalTokenChainId);
     } else {
       // Claiming wrapped token
-      targetTokenAddress = args.originalTokenAddress;
+      targetTokenAddress = ethers.constants.AddressZero;
       tokenData = await getTokenData(args.burnedWrappedTokenAddress, args.sourceChainId);
     }
 
