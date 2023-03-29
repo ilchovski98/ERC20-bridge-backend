@@ -10,14 +10,14 @@ Object.keys(signersAndBridgesByChain).forEach(chainId => {
 
 export const getTokenData = async (address: string, chainId: number | string) => {
   if (savedTokenData[chainId] && savedTokenData[chainId][address]?.saved) {
-    console.log('use saved token data');
+    // console.log('use saved token data');
 
     return {
       name: savedTokenData[chainId][address].name,
       symbol: savedTokenData[chainId][address].symbol
     };
   } else {
-    console.log('loading new token data...');
+    // console.log('loading new token data...');
 
     const result = await multicallTokenData(address, ['name', 'symbol'], [[], []], signersAndBridgesByChain[chainId].provider);
 
